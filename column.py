@@ -10,12 +10,13 @@ class Column:
         self.perms = {}
         self.boost = 1
         self.parent = parent
+        self.active_duty_cycle = 0
     
     def get_new_perms(self):
         #now we assign a random perm value to each input node within the inhibition radius, as calculated above
         for y in range(self.y_floor, self.y_ceil - 1):
             for x in range(self.x_floor, self.x_ceil - 1):
-                if (y, x) in self.perms:
+                if (y, x) in self.perms or (y, x) == self.indices:
                     pass
                 else:
                     self.perms[(y, x)] = random.randint(15, 25) / 100
@@ -67,8 +68,28 @@ class Column:
                 self.perms[index] -= self.parent.decrement_perm
                 self.perms[index] = max(0, self.perms[index])
 
-    def update_duty_cycle(self):
-        pass
+    def update_active_duty_cycle(self):
+        if self.active:
+            adc_modifier = 1
+        else:
+            adc_modifier = 0
+        self.active_duty_cycle = ((self.active_duty_cycle * 9) + adc_modifier) / 10
+        return self.active_duty_cycle
+
+    def get_boost(self, neighbors_adc):
+        adc_mean = np.sum(neighbors_adc) / np.size(neighbors_adc)
+        self.boost = adc_mean / self.active_duty_cycle
+
+    def update_overlap_duty_cycle(self):
+        if self.active:
+            adc_modifier = 1
+        else:
+            adc_modifier = 0
+        self.overlap_duty_cycle = ((self.overlap_duty_cycle * 9) + adc_modifier) / 10
+        return self.overlap_duty_cycle
+
+
+
 
 
         

@@ -1,9 +1,14 @@
 import random
 import numpy as np
 from column import Column
+import shelve
+from visualizer import Visualizer, SaveManager
 
-class Module:
-    def __init__(self, shape, input):
+class SDR:
+    def __init__(self, shape, input, save_file):
+        self.packager = SaveManager(save_file)
+        self.save_file = save_file
+        self.shape = shape
         self.increment_perm = 0.03
         self.decrement_perm = 0.015
         self.connected_perm = 0.2
@@ -14,6 +19,7 @@ class Module:
         self.x_ratio = input.shape[1] // shape[1]
         self.columns = np.ndarray(shape, dtype=object)
         self.stim_thresh = 2
+        self.state_number = 0
         for y_index in range(shape[0]):
             for x_index in range(shape[1]):
                 input_indices = (self.y_ratio * y_index, self.x_ratio * x_index)
@@ -64,16 +70,53 @@ class Module:
     def learn(self):
         for column in self.active_columns:
             column.learn()
-                
-                
-                
-
     
+    def get_adcs(self):
+        vec_adc = np.vectorize(Column.update_duty_cycle)
+        self.adcs = vec_adc(self.columns)
 
-ones = np.ones((6,6))
-test = Module((3,3), ones)
-test.init_perms()
-test.get_overlaps()
-test.get_active_columns()
+    def get_boosts(self):
+        for y_index, row in enumerate(self.columns):
+            for x_index, column in enumerate(row):
+                if y_index - self.inh_radius < 0:
+                    y_low = 0
+                else:
+                    y_low = y_index - self.inh_radius
+                if y_index + self.inh_radius > self.columns.shape[0] - 1:
+                    y_high = self.columns.shape[0] - 1
+                else:
+                    y_high = y_index + self.inh_radius
+                if x_index - self.inh_radius < 0:
+                    x_low = 0
+                else:
+                    x_low = x_index - self.inh_radius
+                if x_index + self.inh_radius > self.columns.shape[1] - 1:
+                    x_high = self.columns.shape[1] - 1
+                else:
+                    x_high = x_index + self.inh_radius
+                neighbor_adc = self.adcs[y_low:y_high + 1, x_low:x_high + 1]
+                column.get_boost(neighbor_adc)
+        
+    def get_odcs(self):
+        pass
+
+    def save_state(self):
+        f = shelve.open(self.save_file)
+        f[str(self.state_number)] = self.packager.package_state(self)
+        f.close()
+
+    def run(self, input):
+        self.input = input
+        self.init_perms()
+        self.get_overlaps()
+        self.get_active_columns()
+        self.save_state()
+
+ones = np.random.randint(2, size=(10, 10))
+test = SDR((5, 5), ones, 'savefile')
+test.run(ones)
+testviz = Visualizer(test)
+testviz.run()
+
 
         
