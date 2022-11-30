@@ -1,14 +1,14 @@
-import pygame
-import time
+from matplotlib import pyplot as plt
+import mnist
+import numpy as np
+
+train_images = mnist.train_images()
+
+image = train_images[0]
+image = np.where(image < (255/2), 0, 255)
+
+plt.imshow(image, cmap='gray')
+plt.show()
 
 
-pygame.init()
-screen = pygame.display.set_mode((200,200))
-color = (255, 0, 0)
-
-while True:
-    screen.fill(color)
-    pygame.display.update()
-    color = (color[0] - 1, color[1] + 1, 0)
-    time.sleep(0.05)
 

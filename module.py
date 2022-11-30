@@ -2,7 +2,8 @@ import random
 import numpy as np
 from column import Column
 import shelve
-from visualizer import Visualizer, SaveManager
+from visualizer_new import Visualizer
+from save import SaveManager
 
 class SDR:
     def __init__(self, shape, input, save_file):
@@ -19,7 +20,7 @@ class SDR:
         self.x_ratio = input.shape[1] // shape[1]
         self.columns = np.ndarray(shape, dtype=object)
         self.stim_thresh = 2
-        self.state_number = 0
+        self.time_step = 0
         for y_index in range(shape[0]):
             for x_index in range(shape[1]):
                 input_indices = (self.y_ratio * y_index, self.x_ratio * x_index)
@@ -27,6 +28,7 @@ class SDR:
     
     def init_perms(self):
         #vectorize the class methods to make it easy to call them on each instance in self.columns
+        #Step 0) Prior to receiving any inputs, the Spatial Pooling algorithm is initialized by computing a list of initial potential synapses for each column.
         vec_get_xy = np.vectorize(Column.get_xy_constraints)
         vec_get_perms = np.vectorize(Column.get_new_perms)
         #call the vectorized function of the method on the entire array
@@ -34,13 +36,16 @@ class SDR:
         vec_get_perms(self.columns)
 
     def get_overlaps(self):
+        #Step 1) Given an input vector, this phase calculates the overlap of each column with that vector
         vec_get_overlap = np.vectorize(Column.compute_overlap)
         self.overlaps = vec_get_overlap(self.columns)
 
     def get_active_columns(self):
+        #Step 3) The third phase calculates which columns remain as winners after the inhibition step
         self.active_columns = []
         for y_index, row in enumerate(self.columns):
             for x_index, column in enumerate(row):
+                #First get bounds for individual column's neighborhood
                 if y_index - self.inh_radius < 0:
                     y_low = 0
                 else:
@@ -57,12 +62,15 @@ class SDR:
                     x_high = self.columns.shape[1] - 1
                 else:
                     x_high = x_index + self.inh_radius
+                #next get all columns in the neighborhood in a list
                 neighbors = self.columns[y_low:y_high + 1, x_low:x_high + 1]
+                #flatten, get overlaps, sort it, and find the k'th greatest value where k is the numactivecolumnsperinharea
                 flat_neigh = neighbors.flatten()
                 flat_neigh = np.array([neighbor.overlap for neighbor in flat_neigh])
                 flat_neigh.sort()
                 flat_neigh = flat_neigh [::-1]
                 min_activity = flat_neigh[self.active_per_inh_area]
+                #finally update the column to active if it is greater than the kth greatest value in the neighborhood
                 if column.overlap > self.stim_thresh and column.overlap >= min_activity:
                     self.active_columns.append(column)
                     column.active = True
@@ -101,9 +109,9 @@ class SDR:
         pass
 
     def save_state(self):
-        f = shelve.open(self.save_file)
-        f[str(self.state_number)] = self.packager.package_state(self)
-        f.close()
+        active_cols = [column.indices for column in self.active_columns]
+        perms = {column.indices:column.perms for column in self.columns.flatten()}
+        self.packager.save_state(self.time_step, self.input, active_cols, perms)
 
     def run(self, input):
         self.input = input
@@ -115,8 +123,7 @@ class SDR:
 ones = np.random.randint(2, size=(10, 10))
 test = SDR((5, 5), ones, 'savefile')
 test.run(ones)
-testviz = Visualizer(test)
-testviz.run()
+testviz = Visualizer(test, ones.shape, (5,5))
 
 
         

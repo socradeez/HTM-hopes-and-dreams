@@ -1,4 +1,3 @@
-from decimal import ROUND_HALF_DOWN
 import pygame
 import shelve
 import sys
