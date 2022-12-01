@@ -14,9 +14,9 @@ class Column:
     
     def get_new_perms(self):
         #now we assign a random perm value to each input node within the inhibition radius, as calculated above
-        for y in range(self.y_floor, self.y_ceil - 1):
-            for x in range(self.x_floor, self.x_ceil - 1):
-                if (y, x) in self.perms or (y, x) == self.indices:
+        for y in range(self.y_floor, self.y_ceil + 1):
+            for x in range(self.x_floor, self.x_ceil + 1):
+                if (y, x) in self.perms:
                     pass
                 else:
                     self.perms[(y, x)] = random.randint(15, 25) / 100
@@ -24,6 +24,7 @@ class Column:
     def get_xy_constraints(self):
         #get y range for perms
         #first we account for y_floor being lower than 0
+
         if self.input_indices[0] - self.inh_radius < 0:
             self.y_floor = 0
             self.y_ceil = self.input_indices[0] + self.inh_radius + abs(self.input_indices[0] - self.inh_radius)
@@ -56,7 +57,7 @@ class Column:
                 self.overlap += 1
         self.overlap *= self.boost
         if self.overlap > 9:
-            print(self.perms)
+            pass
         return self.overlap
 
     def learn(self):

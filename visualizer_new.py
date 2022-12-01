@@ -115,7 +115,11 @@ class Visualizer:
             sdr_sprite = pygame.sprite.spritecollideany(cursor_sprite, self.sdr_group)
             if sdr_sprite:
                 for perm in self.states[str(time_step)].perms[sdr_sprite.index]:
-                    pygame.draw.line(self.screen, (0, 100, 0), (sdr_sprite.index[0] * 10 + 2 + self.xoffset, sdr_sprite.index[1] * 10 + 2), (perm[0] * 10 + 2, perm[1] * 10 + 2))
+                    if self.states[str(time_step)].perms[sdr_sprite.index][perm] > 0.2:
+                        color = (0, 100, 0)
+                    else:
+                        color = (100, 0 ,0)
+                    pygame.draw.line(self.screen, (color), (sdr_sprite.index[0] * 10 + 3 + self.xoffset, sdr_sprite.index[1] * 10 + 3), (perm[0] * 10 + 3, perm[1] * 10 + 3))
 
                 
 
