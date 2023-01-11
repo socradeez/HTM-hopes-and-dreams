@@ -13,7 +13,7 @@ class SDR:
         self.increment_perm = 0.03
         self.decrement_perm = 0.015
         self.connected_perm = 0.2
-        self.inh_radius = 2
+        self.inh_radius = 3
         self.active_per_inh_area = 2
         self.input = input
         self.y_ratio = input.shape[0] // shape[0]
@@ -120,10 +120,10 @@ class SDR:
         self.get_active_columns()
         self.save_state()
 
-ones = np.random.randint(2, size=(10, 10))
-test = SDR((5, 5), ones, 'savefile')
+ones = np.random.randint(2, size=(50, 50))
+test = SDR((10, 10), ones, 'savefile')
 test.run(ones)
-testviz = Visualizer(test, ones.shape, (5,5))
+testviz = Visualizer('savefile', ones.shape, test.shape)
 
 
         

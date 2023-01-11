@@ -30,9 +30,9 @@ class SDRSprite(SquareSprite):
 
     def update(self, active_cols):
         if self.index in active_cols:
-            self.color = (100, 0, 0)
+            self.color = (0, 100, 0)
         else:
-            self.color = (35, 94, 74)
+            self.color = (50, 50, 50)
         self.image.fill(self.color)
 
 class CursorSprite(pygame.sprite.Sprite):
@@ -79,7 +79,7 @@ class Visualizer:
         self.input_group.draw(self.screen)
         self.sdr_group.draw(self.screen)
 
-    def run(self, input_shape, sdr_shape):
+    '''def run(self, input_shape, sdr_shape):
         #start by setting up our SDR and Input sprite groups and setting time_step to 0
         time_step = 0
         self.setup_sdr(sdr_shape)
@@ -119,9 +119,51 @@ class Visualizer:
                         color = (0, 100, 0)
                     else:
                         color = (100, 0 ,0)
-                    pygame.draw.line(self.screen, (color), (sdr_sprite.index[0] * 10 + 3 + self.xoffset, sdr_sprite.index[1] * 10 + 3), (perm[0] * 10 + 3, perm[1] * 10 + 3))
+                    pygame.draw.line(self.screen, (color), (sdr_sprite.index[0] * 10 + 3 + self.xoffset, sdr_sprite.index[1] * 10 + 3), (perm[0] * 10 + 3, perm[1] * 10 + 3))'''
 
-                
+    def run(self, input_shape, sdr_shape):
+        #start by setting up our SDR and Input sprite groups and setting time_step to 0
+        time_step = 0
+        self.setup_sdr(sdr_shape)
+        self.setup_input(input_shape)
+        #initialize the pygame screen given the two shapes and fill it with black
+        self.screen = pygame.display.set_mode(((input_shape[0] * 10 + sdr_shape[0] * 10), (input_shape[1] * 10)))
+        self.screen.fill((0, 0, 0))
+        self.update(time_step)
+        while True:
+            
+            cursor_sprite = CursorSprite()
+            #input event loop; display update is triggered on timestep move
+            for event in pygame.event.get():
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    self.screen.fill((0, 0, 0))
+                    self.update(time_step)
+                    cursor_sprite.update(pygame.mouse.get_pos())
+                    if sdr_sprite := pygame.sprite.spritecollideany(cursor_sprite, self.sdr_group):
+                        for perm in self.states[str(time_step)].perms[sdr_sprite.index]:
+                            if self.states[str(time_step)].perms[sdr_sprite.index][perm] > 0.2:
+                                color = (0, 100, 0)
+                            else:
+                                color = (100, 0 ,0)
+                            pygame.draw.line(self.screen, (color), (sdr_sprite.index[0] * 10 + 3 + self.xoffset, sdr_sprite.index[1] * 10 + 3), (perm[0] * 10 + 3, perm[1] * 10 + 3))
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        pygame.quit()
+                        sys.exit()
+                    if event.key == pygame.K_LEFT:
+                        if time_step == 0:
+                            pass
+                        else:
+                            time_step -= 1
+                            self.update(time_step)
+                    if event.key == pygame.K_RIGHT:
+                        if time_step == self.last_state:
+                            pass
+                        else:
+                            time_step += 1
+                            self.update(time_step)
+            mouse_pos = pygame.mouse.get_pos()
+      
 
             pygame.display.flip()
             
