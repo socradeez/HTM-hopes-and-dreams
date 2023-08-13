@@ -2,10 +2,10 @@ import random
 import numpy as np
 
 class Column:
-    def __init__(self, parent, indices, input_indices):
+    def __init__(self, parent, index, input_index):
         self.input_shape = parent.input.shape
-        self.input_indices = input_indices
-        self.indices = indices
+        self.input_index = input_index
+        self.index = index
         self.inh_radius = parent.inh_radius
         self.perms = {}
         self.boost = 1
@@ -25,29 +25,29 @@ class Column:
         #get y range for perms
         #first we account for y_floor being lower than 0
 
-        if self.input_indices[0] - self.inh_radius < 0:
+        if self.input_index[0] - self.inh_radius < 0:
             self.y_floor = 0
-            self.y_ceil = self.input_indices[0] + self.inh_radius + abs(self.input_indices[0] - self.inh_radius)
+            self.y_ceil = self.input_index[0] + self.inh_radius + abs(self.input_index[0] - self.inh_radius)
         #next we account for y_ceil being higher than the highest index of the input
-        elif self.input_indices[0] + self.inh_radius > self.input_shape[0] - 1:
+        elif self.input_index[0] + self.inh_radius > self.input_shape[0] - 1:
             self.y_ceil = self.input_shape[0] - 1
-            self.y_floor = self.input_indices[0] - self.inh_radius - ((self.input_indices[0] + self.inh_radius) - self.input_shape[1])
+            self.y_floor = self.input_index[0] - self.inh_radius - ((self.input_index[0] + self.inh_radius) - self.input_shape[1])
         #next we account for standard cases
         else:
-            self.y_floor = self.input_indices[0] - self.inh_radius
-            self.y_ceil = self.input_indices[0] + self.inh_radius
+            self.y_floor = self.input_index[0] - self.inh_radius
+            self.y_ceil = self.input_index[0] + self.inh_radius
         #now do the same for X values. First is the x_floor less than 0
-        if self.input_indices[1] - self.inh_radius < 0:
+        if self.input_index[1] - self.inh_radius < 0:
             self.x_floor = 0
-            self.x_ceil = self.input_indices[1] + self.inh_radius + abs(self.input_indices[1] - self.inh_radius)
+            self.x_ceil = self.input_index[1] + self.inh_radius + abs(self.input_index[1] - self.inh_radius)
         #next we account for x_ceil being higher than the highest index of the input
-        elif self.input_indices[1] + self.inh_radius > self.input_shape[1] - 1:
+        elif self.input_index[1] + self.inh_radius > self.input_shape[1] - 1:
             self.x_ceil = self.input_shape[1] - 1
-            self.x_floor = self.input_indices[1] - self.inh_radius - ((self.input_indices[1] + self.inh_radius) - self.input_shape[1])
+            self.x_floor = self.input_index[1] - self.inh_radius - ((self.input_index[1] + self.inh_radius) - self.input_shape[1])
         #next we account for standard cases
         else:
-            self.x_floor = self.input_indices[1] - self.inh_radius
-            self.x_ceil = self.input_indices[1] + self.inh_radius
+            self.x_floor = self.input_index[1] - self.inh_radius
+            self.x_ceil = self.input_index[1] + self.inh_radius
 
     def compute_overlap(self):
         input = self.parent.input

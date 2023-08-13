@@ -45,17 +45,20 @@ class CursorSprite(pygame.sprite.Sprite):
 
 class Visualizer:
     def __init__(self, save_file, input_shape, sdr_shape):
+        pygame.init()
         #let's initialize our visualization! Parameter Attributes first!
         self.save_file = save_file
         #next let's designate our load_manager
-        self.load_manager = SaveManager('savefile')
+        self.load_manager = SaveManager(save_file)
         #now let's try loading all the states at once into memory. May fail for larger runs
         self.states = self.load_manager.load_save()
         #get last state from saves
         self.last_state = max([int(x) for x in self.states.keys()])
         self.xoffset = self.states['0'].input.shape[0] * 10
+        self.font = pygame.font.SysFont('arial', 16)
         #and finally we just let it run
         self.run(input_shape, sdr_shape)
+        
 
     def setup_sdr(self, shape):
         self.sdr_group = pygame.sprite.Group()
@@ -70,6 +73,7 @@ class Visualizer:
                 self.input_group.add(InputSprite((yindex, xindex)))
 
     def update(self, time_step):
+        self.screen.fill((0, 0, 0))
         inputs = self.states[str(time_step)].input
         active_inputs = np.where(inputs==1)
         active_inputs = [(active_inputs[0][index], active_inputs[1][index]) for index, _ in enumerate(active_inputs[0])]
@@ -78,6 +82,10 @@ class Visualizer:
         self.sdr_group.update(active_cols)
         self.input_group.draw(self.screen)
         self.sdr_group.draw(self.screen)
+        act_cols_string = f'active columns: {len(active_cols)}'
+        textimg = self.font.render(act_cols_string, True, (255,255,255))
+        textrect = textimg.get_rect(bottomright=(self.screen_width, self.screen_height))
+        self.screen.blit(textimg, textrect)
 
     '''def run(self, input_shape, sdr_shape):
         #start by setting up our SDR and Input sprite groups and setting time_step to 0
@@ -127,6 +135,8 @@ class Visualizer:
         self.setup_sdr(sdr_shape)
         self.setup_input(input_shape)
         #initialize the pygame screen given the two shapes and fill it with black
+        self.screen_width = (input_shape[0] * 10 + sdr_shape[0] * 10)
+        self.screen_height = (input_shape[1] * 10)
         self.screen = pygame.display.set_mode(((input_shape[0] * 10 + sdr_shape[0] * 10), (input_shape[1] * 10)))
         self.screen.fill((0, 0, 0))
         self.update(time_step)
@@ -152,14 +162,18 @@ class Visualizer:
                         sys.exit()
                     if event.key == pygame.K_LEFT:
                         if time_step == 0:
+                            print("can't go left")
                             pass
                         else:
+                            print("going left")
                             time_step -= 1
                             self.update(time_step)
                     if event.key == pygame.K_RIGHT:
                         if time_step == self.last_state:
+                            print("can't go right")
                             pass
                         else:
+                            print('going right')
                             time_step += 1
                             self.update(time_step)
             mouse_pos = pygame.mouse.get_pos()

@@ -23,8 +23,8 @@ class SDR:
         self.time_step = 0
         for y_index in range(shape[0]):
             for x_index in range(shape[1]):
-                input_indices = (self.y_ratio * y_index, self.x_ratio * x_index)
-                self.columns[y_index, x_index] = Column(self, (y_index, x_index), input_indices)
+                input_index = (self.y_ratio * y_index, self.x_ratio * x_index)
+                self.columns[y_index, x_index] = Column(self, (y_index, x_index), input_index)
     
     def init_perms(self):
         #vectorize the class methods to make it easy to call them on each instance in self.columns
@@ -109,8 +109,8 @@ class SDR:
         pass
 
     def save_state(self):
-        active_cols = [column.indices for column in self.active_columns]
-        perms = {column.indices:column.perms for column in self.columns.flatten()}
+        active_cols = [column.index for column in self.active_columns]
+        perms = {column.index:column.perms for column in self.columns.flatten()}
         self.packager.save_state(self.time_step, self.input, active_cols, perms)
 
     def run(self, input):
@@ -120,10 +120,15 @@ class SDR:
         self.get_active_columns()
         self.save_state()
 
-ones = np.random.randint(2, size=(50, 50))
-test = SDR((10, 10), ones, 'savefile')
-test.run(ones)
-testviz = Visualizer('savefile', ones.shape, test.shape)
+
+ones = np.random.randint(2, size=(100, 100))
+test = SDR((50, 50), ones, 'savefile1')
+test.run(ones)       
+for _ in range(10):
+    test.time_step += 1
+    ones = np.random.randint(2, size=(100, 100))
+    test.run(ones)
+testviz = Visualizer('savefile1', ones.shape, test.shape)
 
 
         

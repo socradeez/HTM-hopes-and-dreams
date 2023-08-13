@@ -106,6 +106,6 @@ class SaveManager():
         
     def package_state(self, sdr):
         self.input = sdr.input
-        self.sdr_state = [column.indices for column in sdr.active_columns]
-        self.sdr_perms = {column.indices:column.perms for column in sdr.columns.flatten()}
+        self.sdr_state = [column.index for column in sdr.active_columns]
+        self.sdr_perms = {column.index:column.perms for column in sdr.columns.flatten()}
         return(self)
